@@ -1,0 +1,13 @@
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import router from './router';
+import App from './App.vue';
+import vuetify from './plugins/vuetify';
+import { useAuth } from '@/composables/useAuth';
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
+app.use(vuetify);
+const { initAuth } = useAuth();
+initAuth();
+app.mount('#app');

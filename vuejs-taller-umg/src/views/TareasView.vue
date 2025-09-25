@@ -62,27 +62,33 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import TareasList from '@/views/TareasList.vue'
 
-type User = { id:number; nombre:string; email:string; rol:'admin'|'usuario' }
-
 const router = useRouter()
+const { user, logout: authLogout, initAuth, requireAuth } = useAuth()
 const search = ref('')
 const tareasListRef = ref()
 
-const user = ref<User | null>(null)
-onMounted(() => {
-  const raw = localStorage.getItem('user')
-  user.value = raw ? JSON.parse(raw) as User : null
+onMounted(async () => {
+  if (!requireAuth()) return
+
+  initAuth()
+
+  try {
+    if (!user.value) {
+      await authLogout()
+    }
+  } catch (error) {
+    console.error('Error initializing auth:', error)
+  }
 })
 
 const goAddTarea = () => router.push('/tareas/nueva')
 
 const goToUsers = () => router.push('/usuarios')
 
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  router.push('/login')
+const logout = async () => {
+  await authLogout()
 }
 </script>

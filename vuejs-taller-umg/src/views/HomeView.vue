@@ -60,17 +60,25 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import UsersList from '@/views/UsersList.vue'
 
-type User = { id:number; nombre:string; email:string; rol:'admin'|'usuario' }
-
 const router = useRouter()
+const { user, logout: authLogout, initAuth, requireAuth } = useAuth()
 const search = ref('')
 
-const user = ref<User | null>(null)
-onMounted(() => {
-  const raw = localStorage.getItem('user')
-  user.value = raw ? JSON.parse(raw) as User : null
+onMounted(async () => {
+  if (!requireAuth()) return
+
+  initAuth()
+
+  try {
+    if (!user.value) {
+      await authLogout()
+    }
+  } catch (error) {
+    console.error('Error initializing auth:', error)
+  }
 })
 
 const isAdmin = computed(() => user.value?.rol === 'admin')
@@ -79,9 +87,7 @@ const goAddUser = () => router.push('/usuarios/nuevo')
 
 const goToTareas = () => router.push('/tareas')
 
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  router.push('/login')
+const logout = async () => {
+  await authLogout()
 }
 </script>

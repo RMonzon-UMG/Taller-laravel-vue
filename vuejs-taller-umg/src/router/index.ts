@@ -21,8 +21,17 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-  if (to.meta.requiresAuth && !token) return { name: 'login', query: { redirect: to.fullPath } }
-  if (to.name === 'login' && token) return { name: 'usuarios' }
+  const user = localStorage.getItem('user')
+  const isAuthenticated = !!(token && user)
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.name === 'login' && isAuthenticated) {
+    return { name: 'usuarios' }
+  }
+
   return true
 })
 

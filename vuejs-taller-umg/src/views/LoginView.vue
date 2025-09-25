@@ -26,10 +26,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import api from '@/services/api'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const route = useRoute()
+const { login } = useAuth()
 
 const email = ref('')
 const password = ref('')
@@ -47,24 +48,12 @@ const onSubmit = async () => {
     errorMsg.value = ''
     loading.value = true
     try {
-        // Llamada a tu endpoint
-        const { data } = await api.post('/login', {
-            email: email.value,
-            password: password.value,
-        })
+        await login(email.value, password.value)
 
-        // Guardar token y usuario
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('user', JSON.stringify(data.usuario))
-
-        // Redirigir (a lo que tengas, por ejemplo /usuarios)
         const redirect = (route.query.redirect as string) || '/usuarios'
         router.push(redirect)
-    } catch (e: any) {
-        // Mensaje claro desde backend o genérico
-        errorMsg.value = e?.response?.data?.message
-            || e?.response?.data?.errors?.email?.[0]
-            || 'No se pudo iniciar sesión. Verifica tus credenciales.'
+    } catch (error: any) {
+        errorMsg.value = error.message || 'No se pudo iniciar sesión. Verifica tus credenciales.'
     } finally {
         loading.value = false
     }
